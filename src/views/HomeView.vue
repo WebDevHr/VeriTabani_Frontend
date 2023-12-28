@@ -10,6 +10,11 @@ import ProductCard from '../components/ProductCard.vue';
 
 export default defineComponent({
   name: 'HomeView',
+  data() {
+    return {
+      test: true
+    }
+  },
 
   components: {
     ProductCard,

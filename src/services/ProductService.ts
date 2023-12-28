@@ -17,14 +17,15 @@ export default {
   getProduct(id: number) {
     return apiClient.get("/product/" + id);
   },
-  getProducts(perPage: number, page: number) {
-    return apiClient.get("/products/" + perPage + "/" + page);
+  getProducts(userId: number, perPage: number, page: number) {
+    return apiClient.post("/products/" + perPage + "/" + page, { userid: userId });
   },
   getProductsByCat(category: string, perPage: number, page: number) {
     return apiClient.get(
       "/products/" + category + "?_limit=" + perPage + "&_page=" + page
     );
   },
+
   // getSearch(expression) {
   //   return apiClient.get("/search", {
   //     params: {
