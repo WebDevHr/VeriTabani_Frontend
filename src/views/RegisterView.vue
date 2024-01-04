@@ -26,17 +26,17 @@
 </template>
   
 <script lang="ts">
-import { Ref, ref, reactive, computed } from 'vue';
+import { Ref, ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router'; // Import useRouter
 
-interface User {
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    email: string;
-    password: string;
-}
+// interface User {
+//     firstName: string;
+//     lastName: string;
+//     phoneNumber: string;
+//     email: string;
+//     password: string;
+// }
 
 export default {
     setup() {
@@ -46,7 +46,7 @@ export default {
         const form: Ref<any> = ref(null);
         const tab = ref(2);
         const showPassword = ref(false);
-        const user = reactive<User>({
+        const user = ref({
             firstName: '',
             lastName: '',
             phoneNumber: '',
@@ -100,13 +100,19 @@ export default {
                 try {
                     // Dispatching the action with the user data
                     // Since the user object here is reactive, consider using `toRaw(user)` if needed
-                    const response = await store.dispatch('user/registerUser', user);
+                    const response = await store.dispatch('user/registerUser', {
+                        firstName: user.value.firstName,
+                        lastName: user.value.lastName,
+                        phoneNumber: user.value.phoneNumber,
+                        email: user.value.email,
+                        password: user.value.password
+                    });
                     console.log('Registration success:', response);
 
                     resetForm();
                     router.push({
                         name: 'log-in', // Use the route name of your login page
-                        state: { email: user.email } // Passing params (Not recommended for sensitive information)
+                        state: { email: user.value.email } // Passing params (Not recommended for sensitive information)
                     });
 
                     // Optional: redirect or update UI upon success

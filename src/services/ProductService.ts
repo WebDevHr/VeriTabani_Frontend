@@ -14,8 +14,12 @@ export default {
   getCategories() {
     return apiClient.get("/categories");
   },
-  getProduct(id: number) {
-    return apiClient.get("/product/" + id);
+  getProduct(id: number, token: string) {
+    return apiClient.post("/product/" + id, {}, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
   },
   getProducts(userId: number, perPage: number, page: number) {
     return apiClient.post("/products/" + perPage + "/" + page, { userid: userId });
@@ -25,6 +29,9 @@ export default {
       "/products/" + category + "?_limit=" + perPage + "&_page=" + page
     );
   },
+  getRatingsDetails(product_id: number) {
+    return apiClient.get('/product/rating-details/' + product_id);
+  }
 
   // getSearch(expression) {
   //   return apiClient.get("/search", {

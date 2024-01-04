@@ -1,7 +1,7 @@
 <template>
     <v-container>
         <v-row justify="center">
-            <v-col>
+            <v-col v-if="computedCartItems && computedCartItems[0]">
                 <v-card class="mx-auto" outlined :loading="cartLoading">
                     <v-list variant="flat">
                         <v-list-item>
@@ -10,6 +10,7 @@
                         <v-divider></v-divider>
 
                         <!-- Cart Items List -->
+
                         <v-list-item v-for="item in computedCartItems" :key="item.cart_item_id">
                             <div class="d-flex pa-5">
                                 <div class="me-5">
@@ -23,16 +24,16 @@
                                 <div class="d-flex align-center">
                                     <v-list-item-action>
                                         <v-btn icon @click="minusQuantity(item.cart_item_id, item.product_id)"
-                                            size="x-small">
-                                            <v-icon size="small"
-                                                :icon="item.quantity < 2 ? 'mdi-delete' : 'mdi-minus-thick'">
+                                            size="x-small" elevation="1" color="my-default-color">
+                                            <v-icon :size="item.quantity < 2 ? 'x-large' : 'small'"
+                                                :icon="item.quantity < 2 ? 'mdi-delete-forever' : 'mdi-minus-thick'">
                                             </v-icon>
                                         </v-btn>
-                                        <v-list-item-subtitle class="border rounded pa-3 mx-2">
+                                        <v-list-item-title class="border rounded px-3 mx-2 text-button">
                                             {{ item.quantity }}
-                                        </v-list-item-subtitle>
-                                        <v-btn icon @click="plusQuantity(item.cart_item_id, item.product_id)"
-                                            size="x-small">
+                                        </v-list-item-title>
+                                        <v-btn icon @click="plusQuantity(item.cart_item_id, item.product_id)" size="x-small"
+                                            elevation="1" color="my-default-color">
                                             <v-icon size="small" icon="mdi-plus-thick"></v-icon>
                                         </v-btn>
                                     </v-list-item-action>
@@ -54,8 +55,22 @@
                     </v-list>
                 </v-card>
                 <div class="d-flex justify-end mt-3">
-                    <v-btn color="my-default-color">Sepeti tamamla</v-btn>
+                    <v-btn color="my-default-color" :to="{ name: 'take-order' }">Sepeti
+                        tamamla</v-btn>
                 </div>
+            </v-col>
+            <v-col v-else>
+                <v-card class="pa-10 mt-5">
+                    <v-card-title class="d-flex justify-center">
+                        Sepetinde birşey yok!
+                    </v-card-title>
+                    <v-card-subtitle class="d-flex justify-center align-center">
+                        Ürünler eklemek için,
+                        <v-btn :to="{ name: 'home' }" class="px-2" append-icon="mdi-home" variant="plain"
+                            color="blue">Anasayfa</v-btn>
+                        geç
+                    </v-card-subtitle>
+                </v-card>
             </v-col>
         </v-row>
     </v-container>
@@ -111,33 +126,37 @@ export default defineComponent({
             if (!store.state.user.token) {
                 router.push({ name: 'log-in' });
             }
-            cartLoading.value = true;
-            try {
-                const token = store.state.user.token// Or use a store if you're using Vuex/Pinia
-                if (!token) {
-                    router.push({ name: 'log-in' });
-                    throw new Error('Authentication token not found.');
+            else {
+                cartLoading.value = true;
+                try {
+                    const token = store.state.user.token// Or use a store if you're using Vuex/Pinia
+                    if (!token) {
+                        router.push({ name: 'log-in' });
+                        throw new Error('Authentication token not found.');
+                    }
+
+                    const response = await store.dispatch('cart/fetchCartItems');
+                    if (response.length !== 0) {
+                        cartItems.value = response;
+                    }
+
+                } catch (error) {
+                    console.error('There was an error fetching the cart items:', error);
+                    // Emit an error or show a notification as per your error-handling strategy
+                } finally {
+                    cartLoading.value = false;
                 }
-
-
-                const response = await store.dispatch('cart/fetchCartItems');
-                if (response) {
-                    cartItems.value = response;
-                }
-
-            } catch (error) {
-                console.error('There was an error fetching the cart items:', error);
-                // Emit an error or show a notification as per your error-handling strategy
-            } finally {
-                cartLoading.value = false;
             }
         });
 
         // Compute total price
         const totalPrice = computed(() => {
-            return cartItems.value.reduce((total, item) => {
-                return total + (item.quantity * parseFloat(item.productId.price));
-            }, 0);
+            if (cartItems.value && cartItems.value[0])
+                return cartItems.value.reduce((total, item) => {
+                    return total + (item.quantity * parseFloat(item.productId.price));
+                }, 0);
+            else
+                return 0;
         });
 
         const computedCartItems = computed(() => {

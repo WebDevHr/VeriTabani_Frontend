@@ -71,22 +71,24 @@ export default {
                         password: password.value,
                     });
 
-                    showGlobalSnackbar({
-                        show: true,
-                        color: 'my-default-color',
-                        text: 'Merhaba, ' + store.state.user.activeUser.firstName + '!',
-                        timeout: 3000,
-                    });
 
-                    // Perform redirection or other actions after login
-                    router.push('/');
+                    if (store.state.user.activeUser) {
+                        showGlobalSnackbar({
+                            show: true,
+                            color: 'my-default-color',
+                            text: 'Merhaba, ' + store.state.user.activeUser.firstName + '!',
+                            timeout: 3000,
+                        });
+                        router.push('/');
+                    }
 
-                } catch (error) {
-                    console.error('Login error:', error);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } catch (error: any) {
+                    console.log('Login error:', error);
                     showGlobalSnackbar({
                         show: true,
                         color: 'red-darken-3',
-                        text: 'Giriş başarısız oldu.',
+                        text: error.response.data.error,
                         timeout: 6000,
                     });
                 }

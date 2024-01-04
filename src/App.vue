@@ -28,14 +28,16 @@
 
           <v-list v-if="!isAuthenticated">
             <v-list-item v-for="(item, i) in items" :key="i">
-              <v-btn :prepend-icon="item.icon" :to="{ name: item.url }" variant="text">
+              <v-btn :prepend-icon="item.icon" :to="{ name: item.url }" variant="text"
+                class="d-flex justify-start align-center w-100">
                 {{ item.title }}
               </v-btn>
             </v-list-item>
           </v-list>
           <v-list v-else>
             <v-list-item v-for="(item, i) in itemsAccount" :key="i">
-              <v-btn :prepend-icon="item.icon" :to="{ name: item.url }" variant="text" @click="logoutUser">
+              <v-btn :prepend-icon="item.icon" :to="{ name: item.url }" variant="text" @click="logoutUser(item.title)"
+                class="d-flex justify-start align-center w-100">
                 {{ item.title }}
               </v-btn>
             </v-list-item>
@@ -60,7 +62,19 @@
           </v-btn>
         </template>
       </v-snackbar>
-      <v-footer></v-footer>
+      <v-footer class="d-flex flex-column pa-0" elevation="1" color="my-default-color">
+        <!-- <div class="bg-black d-flex w-100 align-center px-4">
+          <strong>İletişim yollarımız</strong>
+
+          <v-spacer></v-spacer>
+
+          <v-btn v-for="icon in icons" :key="icon" class="mx-4" :icon="icon" variant="plain" size="small"></v-btn>
+        </div>
+
+        <div class="px-4 py-2 text-center w-100">
+          {{ new Date().getFullYear() }} — <strong>Final Project</strong>
+        </div> -->
+      </v-footer>
     </v-main>
   </v-app>
 </template>
@@ -81,6 +95,12 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
     const nightMode = ref()
+    const icons = ref([
+      'mdi-facebook',
+      'mdi-twitter',
+      'mdi-linkedin',
+      'mdi-instagram',
+    ]);
 
 
     // Use 'computed' to create a reactive computed reference to part of the state
@@ -116,6 +136,16 @@ export default defineComponent({
     ]
     const itemsAccount = [
       {
+        title: 'Hesabım',
+        url: 'account',
+        icon: 'mdi-account-cog'
+      },
+      {
+        title: 'Siparişlerim',
+        url: 'order',
+        icon: 'mdi-package'
+      },
+      {
         title: 'Çıkış yap',
         url: '',
         icon: 'mdi-logout'
@@ -130,19 +160,20 @@ export default defineComponent({
       store.dispatch('snackbar/showSnackbar', payload); // Dispatch the action, including the namespace
     };
 
-    const logoutUser = () => {
-      store.dispatch('user/logoutUser');
-      // Redirect to home page or login page after logout
-      // The 'true' parameter forces a reload from the server rather than the cache
-      router.push({ name: 'home' }).then(() => {
-        showGlobalSnackbar({
-          show: true,
-          color: 'my-default-color',
-          text: 'Hesabınızdan çıkış yaptınız!',
-          timeout: 3000,
+    const logoutUser = (logoutUser: string) => {
+      if (logoutUser == 'Çıkış yap') {
+        store.dispatch('user/logoutUser');
+        // Redirect to home page or login page after logout
+        // The 'true' parameter forces a reload from the server rather than the cache
+        router.push({ name: 'home' }).then(() => {
+          showGlobalSnackbar({
+            show: true,
+            color: 'my-default-color',
+            text: 'Hesabınızdan çıkış yaptınız!',
+            timeout: 3000,
+          });
         });
-      });
-
+      }
     };
 
     return {
@@ -154,7 +185,8 @@ export default defineComponent({
       userName,
       showSnackbar,
       hideSnackbar,
-      nightMode
+      nightMode,
+      icons
     };
   }
 });

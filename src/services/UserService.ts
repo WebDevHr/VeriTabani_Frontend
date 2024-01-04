@@ -18,6 +18,16 @@ export default {
     login(credentials: { email: string; password: string }) {
         return apiClient.post('/login', credentials);
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updateUser(userId: number, userData: any) {
+        return apiClient.patch('/users/' + userId,
+            {
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                phoneNumber: userData.phoneNumber,
+                email: userData.email
+            })
+    },
     getCartItems(token: string) {
         return apiClient.get('/cart/get-cart-items', {
             headers: {
@@ -52,5 +62,19 @@ export default {
                 'Authorization': `Bearer ${token}`
             }
         });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updatePassword(token: string, password: any, newPassword: any) {
+        return apiClient.patch('/change-password',
+            {
+                password: password,
+                newPassword: newPassword
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        )
     }
 };

@@ -26,14 +26,17 @@ const favoritesModule: Module<IFavoritesState, RootState> = {
         // Another example could be to get the total count of favorite items
         favoritesCount: (state): number => {
             return state.items.length;
-        },
+        }
     },
 
     mutations: {
         SET_FAVORITES_ITEMS(state, items: FavoriteItem[]) {
             state.items = items;
         },
-        // If you have functionality to add or remove a single item in favorites, you can extend mutations here
+        REMOVE_FROM_FAVORITE(state, product_id: number) {
+            const index = state.items.findIndex(item => item.productId.id == product_id)
+            index != -1 ? state.items.splice(index, 1) : state.items;
+        }
     },
 
     actions: {
@@ -44,29 +47,29 @@ const favoritesModule: Module<IFavoritesState, RootState> = {
 
             try {
                 const response = await UserService.getFavoriteItems(rootState.user.token);
+
                 // Transform the response to fit the FavoriteItem type if necessary:
                 const favoritesData: FavoriteItem[] = response.data.map((favorite: FavoriteItem) => ({
                     ...favorite,
                     id: favorite.productId.id, // Ensure the ID is correctly assigned
                 }));
                 commit('SET_FAVORITES_ITEMS', favoritesData);
+
             } catch (error) {
                 console.error('Error fetching favorites:', error);
                 return Promise.reject(error);
             }
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        async toggleFavorite({ commit, rootState }, product: any) {
+        async toggleFavorite({ commit, rootState }, product_id: number) {
             if (!rootState.user.token) {
                 throw new Error('Authentication token not available');
             }
 
             try {
-                const response = await UserService.toggleProductFavorite(product.id, rootState.user.token);
-
-                // Commit a mutation to your Vuex store to reflect the change
-                commit('UPDATE_FAVORITE_STATUS', { productId: product.id, isFavorite: response.data.isFavorite });
-
+                const res = await UserService.toggleProductFavorite(product_id, rootState.user.token);
+                commit('REMOVE_FROM_FAVORITE', product_id);
+                return res.data
 
             } catch (error) {
                 console.error('Error toggling favorite status:', error);

@@ -5,6 +5,7 @@ import ProductService from '@/services/ProductService';
 
 // Define the Product type based on your data structure
 import { Product } from '@/store/modules/productTypes/types';
+import store from '@/store';
 
 // Define the state structure for the Products module
 export interface IProductsState {
@@ -19,25 +20,29 @@ const productsModule: Module<IProductsState, RootState> = {
     },
 
     getters: {
-        // You can define getters for filtered products, favorite products etc.
     },
 
     mutations: {
         SET_PRODUCTS(state, products: Product[]): void {
             state.products = products;
-        }
-        // Add more mutations as needed
+        },
+
     },
 
     actions: {
         async fetchProducts({ commit }, { userId, perPage, page }): Promise<void> {
 
             const response = await ProductService.getProducts(userId, perPage, page);
-            commit('SET_PRODUCTS', response.data);
-            return response.data
+            commit('SET_PRODUCTS', response.data.products);
+            return response.data.products
         },
+        async fetchProductById({ state }, productId): Promise<Product | undefined> {
+            const token = store.state.user.token ? store.state.user.token : '';
+            const response = await ProductService.getProduct(productId, token);
+            return response.data
 
-        // Add more actions as needed, such as updating a product, etc.
+        }
+
     },
 };
 
