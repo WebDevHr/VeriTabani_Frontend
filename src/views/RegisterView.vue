@@ -6,6 +6,9 @@
                 <v-tab :value="2" min-width="150px">Üye Ol</v-tab>
             </v-tabs>
             <v-form ref="form" :model-value="isValid" lazy-validation @submit.prevent="submit">
+                <v-alert class="mb-3 border-none bg-white text-red-darken-3 d-flex justify-center" v-if="alertError"
+                    closable> {{ alertError
+                    }}</v-alert>
                 <v-text-field v-model="user.firstName" :rules="firstNameRules" label="Adınız" required
                     prepend-icon="mdi-account" />
                 <v-text-field v-model="user.lastName" :rules="lastNameRules" label="Soyadınız" required
@@ -46,6 +49,7 @@ export default {
         const form: Ref<any> = ref(null);
         const tab = ref(2);
         const showPassword = ref(false);
+        const alertError = ref();
         const user = ref({
             firstName: '',
             lastName: '',
@@ -120,7 +124,10 @@ export default {
 
                 } catch (error) {
                     console.error('Registration error:', error);
-                    alert('Registration failed');
+                    alertError.value = "Bu bilgiler ile başka bir kullancı var"
+                    setTimeout(() => {
+                        alertError.value = null;
+                    }, 5000)
                 }
             } else {
                 alert('Please correct the errors in the form');
@@ -140,6 +147,7 @@ export default {
             emailRules,
             passwordRules,
             isValid,
+            alertError
         };
     },
 };

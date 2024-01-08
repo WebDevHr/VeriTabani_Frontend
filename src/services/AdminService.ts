@@ -12,19 +12,23 @@ const apiClient = axios.create({
 
 export default {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateUser(userId: number, userData: any) {
-        return apiClient.patch('/users/' + userId,
+    addProduct(token: string, productData: any) {
+        return apiClient.post('/products', productData,
             {
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                phoneNumber: userData.phoneNumber,
-                email: userData.email
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             })
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    addReview(review: any) {
-        return apiClient.post('/reviews', review);
-    }
+    addImage(token: string, image: any) {
+        return apiClient.post('/product_images', image
+            , {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 };

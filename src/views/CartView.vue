@@ -32,7 +32,8 @@
                                         <v-list-item-title class="border rounded px-3 mx-2 text-button">
                                             {{ item.quantity }}
                                         </v-list-item-title>
-                                        <v-btn icon @click="plusQuantity(item.cart_item_id, item.product_id)" size="x-small"
+                                        <v-btn :disabled="!(item.productId.quantityInStock > item.quantity)" icon
+                                            @click="plusQuantity(item.cart_item_id, item.product_id)" size="x-small"
                                             elevation="1" color="my-default-color">
                                             <v-icon size="small" icon="mdi-plus-thick"></v-icon>
                                         </v-btn>
@@ -192,7 +193,7 @@ export default defineComponent({
             cartItemsCount,
             getItemImageUrl,
             minusQuantity,
-            plusQuantity
+            plusQuantity,
         };
     }
 });

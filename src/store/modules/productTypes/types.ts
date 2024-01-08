@@ -14,6 +14,7 @@ export interface Product {
     price: number;
     average_rating: number;
     number_of_ratings: number;
+    quantity_in_stock: number;
     images: Array<ProductImage>;
     is_in_wishlist: boolean;
 }

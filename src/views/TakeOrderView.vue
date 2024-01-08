@@ -224,7 +224,9 @@ export default defineComponent({
                     totalPayment.value,
                     store.state.user.activeUser.id,
                     primaryAddress.value
-                )
+                ).then(() => {
+                    store.dispatch('card/resetCard')
+                })
                 gotConfirmed.value = true;
                 timeoutForGotOrder = setTimeout(() => {
                     router.push({ name: 'home' })

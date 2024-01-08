@@ -14,10 +14,11 @@ export default {
   getCategories() {
     return apiClient.get("/categories");
   },
-  getProduct(id: number, token: string) {
-    return apiClient.post("/product/" + id, {}, {
-      headers: {
-        'Authorization': `Bearer ${token}`
+  getProduct(id: number, userId: number) {
+    return apiClient.get("/product", {
+      params: {
+        id: id,
+        userId: userId
       }
     });
   },
@@ -31,6 +32,21 @@ export default {
   },
   getRatingsDetails(product_id: number) {
     return apiClient.get('/product/rating-details/' + product_id);
+  },
+  getReviews(token: string, product_id: number) {
+    return apiClient.get('/product/reviews', {
+      params: {
+        productId: product_id
+      }
+    });
+  },
+  canAddReview(productId: number, userId: number) {
+    return apiClient.get('/product/can-add-review', {
+      params: {
+        productId: productId,
+        userId: userId
+      }
+    });
   }
 
   // getSearch(expression) {

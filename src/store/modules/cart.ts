@@ -39,6 +39,9 @@ const cartModule: Module<ICartState, RootState> = {
             if (index !== -1 && state.items[index].quantity > 0) {
                 state.items[index].quantity--;
             }
+        },
+        RESET_CARD(state) {
+            state.items = []
         }
         // Define mutations for adding, removing, emptying, or updating cart items as needed
     },
@@ -84,6 +87,9 @@ const cartModule: Module<ICartState, RootState> = {
             } catch {
                 console.log('Database does not take the value.')
             }
+        },
+        resetCard({ commit }) {
+            commit('RESET_CARD');
         },
     },
 };

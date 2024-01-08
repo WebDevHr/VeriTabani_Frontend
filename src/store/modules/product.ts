@@ -36,9 +36,10 @@ const productsModule: Module<IProductsState, RootState> = {
             commit('SET_PRODUCTS', response.data.products);
             return response.data.products
         },
-        async fetchProductById({ state }, productId): Promise<Product | undefined> {
-            const token = store.state.user.token ? store.state.user.token : '';
-            const response = await ProductService.getProduct(productId, token);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        async fetchProductById({ state, commit }, productId): Promise<Product | undefined> {
+            const userId = store.state.user.activeUser ? store.state.user.activeUser.id : '';
+            const response = await ProductService.getProduct(productId, userId);
             return response.data
 
         }

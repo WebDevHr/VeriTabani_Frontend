@@ -21,7 +21,6 @@
             </v-col>
 
             <v-col cols="11" md="8" class="mx-auto" v-if="product">
-
                 <v-card class="py-10 px-10" elevation="0">
                     <v-card-title class="pb-0">{{ product.name }}</v-card-title>
                     <v-card-text class="my-1 text-h6 pt-0 pb-3" style="color: rgb(58, 108, 244)">{{ product.description
@@ -34,16 +33,43 @@
                             <span class="ml-3 text-caption"> ({{ product.number_of_ratings }})</span>
                         </v-btn>
                     </v-card-text>
-                    <v-card-subtitle class="mb-10">{{ product.price }} TL</v-card-subtitle>
-                    <v-btn class="w-50 ml-3 mr-3" elevation="1" color="my-default-color"
+                    <v-card-subtitle class="mb-3">{{ product.price }} TL</v-card-subtitle>
+                    <v-card-subtitle class="mb-10">Stokta {{ product.quantity_in_stock }} tane var</v-card-subtitle>
+                    <v-btn class="w-75 ml-3 mr-3" elevation="1" color="my-default-color"
                         @click="addToCart(product.product_id)" :loading="loading" :disabled="loading">Sepete Ekle</v-btn>
                     <v-btn icon variant="outlined" @click="toggleFavorite(product)">
                         <v-icon color="pink">mdi-heart{{ product.is_in_wishlist ? '' : '-outline' }}</v-icon>
                     </v-btn>
                 </v-card>
+                <v-card class="mt-5 pa-8" elevation="0" v-if="reviews.length !== 0">
+                    <v-card-title>
+                        Değerlendirmeler
+                    </v-card-title>
+                    <div v-for="(review, index) in reviews " :key="index" class="pl-4">
+                        <v-card class="my-3 pa-2" elevation="0" :border="true">
+                            <v-card-subtitle>{{ review.title }}</v-card-subtitle>
+                            <v-card-text> {{ review.body }}</v-card-text>
+                            <v-rating class="ml-3 mb-5" :model-value="review.rating" :readonly="true" size="small"
+                                density="compact" color="grey-lighten-1" active-color="orange-darken-1"
+                                half-increments></v-rating>
+                        </v-card>
+                    </div>
+                </v-card>
+                <v-card v-else class="mt-5 pa-8" elevation="0">
+                    <v-card-subtitle class="ml-3">Bir değerlendirme yok!</v-card-subtitle>
+                </v-card>
 
-
-
+                <v-card v-if="canAddReview" class="my-3 pa-10" elevation="0">
+                    <v-form class="ml-3" @submit.prevent="addReview">
+                        <v-text-field label="Başlık" v-model="review.title"></v-text-field>
+                        <v-text-field label="Açıklama" v-model="review.body"></v-text-field>
+                        <v-rating class="ml-3 mb-5" v-model="review.rating" size="small" density="compact"
+                            color="grey-lighten-1" active-color="orange-darken-1"></v-rating>
+                        <v-spacer></v-spacer>
+                        <v-btn type="submit" elevation="1" color="my-default-color" :loading="reviewLoading">Yorum
+                            ekle</v-btn>
+                    </v-form>
+                </v-card>
             </v-col>
 
             <v-dialog v-model="dialog" width="700" height="500" v-if="product">
@@ -88,7 +114,7 @@
                         </div>
 
                         <v-list bg-color="transparent" class="d-flex flex-column-reverse" density="compact">
-                            <v-list-item v-for="(  rating, i  ) in   ratingDetails  " :key="i">
+                            <v-list-item v-for="(    rating, i    ) in     ratingDetails    " :key="i">
                                 <v-progress-linear :model-value="rating * 20" color="yellow-darken-3" height="20"
                                     rounded></v-progress-linear>
 
@@ -121,6 +147,7 @@ import { useRouter } from 'vue-router';
 import { useRoute } from 'vue-router';
 import ProductService from '@/services/ProductService';
 import { ISnackbarState } from '@/store/modules/snackbar';
+import UserService2 from '@/services/UserService2';
 
 // Define the types for the Product object structure
 interface ProductImage {
@@ -136,8 +163,17 @@ interface product {
     price: number;
     average_rating: number;
     number_of_ratings: number;
+    quantity_in_stock: number;
     images: Array<ProductImage>;
     is_in_wishlist: boolean;
+}
+
+interface review {
+    title: string,
+    body: string,
+    rating: number,
+    productId: number,
+    userId: number
 }
 
 export default defineComponent({
@@ -153,6 +189,16 @@ export default defineComponent({
         const zoomed = ref(false);
         const ratingDetails = ref();
         const loading = ref(false);
+        const reviewLoading = ref(false);
+        const reviews = ref<review[]>([]);
+        const canAddReview = ref(false);
+        const review = ref({
+            title: '',
+            body: "",
+            rating: 0,
+            productId: 0,
+            userId: store.state.user.activeUser ? store.state.user.activeUser.id : 0
+        });
 
         const rating = computed(() => {
             if (product.value && typeof product.value.average_rating == 'string') {
@@ -163,7 +209,7 @@ export default defineComponent({
 
         onMounted(async () => {
             if (store.state.product.products.length !== 0) {
-                product.value = store.state.product.products.find((item) => item.product_id === parseInt(route.params.id[0])) ?? null;
+                product.value = store.state.product.products.find((item) => item.product_id.toString() === route.params.id) ?? null;
             } else {
                 const response = await store.dispatch('product/fetchProductById', route.params.id);
                 product.value = response.products[0]
@@ -171,6 +217,18 @@ export default defineComponent({
             ratingDetails.value = await ProductService.getRatingsDetails(product.value ? product.value?.product_id : 0).then((response) => {
                 return response.data
             });
+            reviews.value = await ProductService.getReviews(
+                store.state.user.token ? store.state.user.token : '',
+                product.value ? product.value?.product_id : 0
+            ).then((res) => {
+                return res.data.reviews
+            })
+            if (store.state.user.activeUser) {
+                canAddReview.value = await ProductService.canAddReview(
+                    product.value ? product.value?.product_id : 0,
+                    store.state.user.activeUser ? store.state.user.activeUser.id : 0,
+                ).then((res) => res.data.canAddReview)
+            }
         });
 
         const openDialog = (index: number) => {
@@ -231,46 +289,51 @@ export default defineComponent({
             }
         };
 
+        const addReview = async () => {
+            review.value.productId = product.value ? product.value?.product_id : 0;
+            reviews.value.push(review.value);
+            await UserService2.addReview(review.value);
+
+        }
+
         const addToCart = async (productId: number) => {
-            if (!loading.value) {
-                try {
-                    // Set the loading state for this button to true
-                    loading.value = true;
-                    const token = store.state.user.token;
-                    if (!token) {
-                        router.push({ name: 'log-in' });
-                        throw new Error('Authentication token not found.');
-                    }
-
-                    // Dispatch action to add product to cart
-                    await store.dispatch('cart/addItemToCart', {
-                        productId,
-                        token
-                    })
-
-                    // Optional: show a success message
-                    showGlobalSnackbar({
-                        show: true,
-                        color: 'green-darken-3',
-                        text: 'Ürün sepetinize eklendi!',
-                        timeout: 3000,
-                    });
-
-                } catch (error) {
-                    console.error('There was an error adding the product to cart:', error);
-                    showGlobalSnackbar({
-                        show: true,
-                        color: 'red-darken-3',
-                        text: 'Hata! ' + error,
-                        timeout: 3000,
-                    });
-                    // Optional: show an error message
+            try {
+                // Set the loading state for this button to true
+                loading.value = true;
+                const token = store.state.user.token;
+                if (!token) {
+                    router.push({ name: 'log-in' });
+                    throw new Error('Authentication token not found.');
                 }
-                finally {
-                    setTimeout(() => {
-                        loading.value = false;
-                    }, 500)
-                }
+
+                // Dispatch action to add product to cart
+                await store.dispatch('cart/addItemToCart', {
+                    productId,
+                    token
+                })
+
+                // Optional: show a success message
+                showGlobalSnackbar({
+                    show: true,
+                    color: 'green-darken-3',
+                    text: 'Ürün sepetinize eklendi!',
+                    timeout: 3000,
+                });
+
+            } catch (error) {
+                console.error('There was an error adding the product to cart:', error);
+                showGlobalSnackbar({
+                    show: true,
+                    color: 'red-darken-3',
+                    text: 'Hata! ' + error,
+                    timeout: 3000,
+                });
+                // Optional: show an error message
+            }
+            finally {
+                setTimeout(() => {
+                    loading.value = false;
+                }, 500)
             }
         };
 
@@ -288,13 +351,18 @@ export default defineComponent({
             currentImage,
             ratingDetails,
             loading,
+            reviews,
+            review,
+            reviewLoading,
+            canAddReview,
             addToCart,
             toggleFavorite,
             openDialog,
             openRatings,
             zoomIn,
             previousImage,
-            nextImage
+            nextImage,
+            addReview
         };
     },
 });

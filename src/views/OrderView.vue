@@ -20,7 +20,7 @@
             <v-col>
                 <v-card class="pa-5">
                     <v-card-title class="mb-5">Şiparişlerim</v-card-title>
-                    <v-card v-for="order in orders" :key="order.id" class="mb-2 pa-3" color="grey-lighten-3" elevation="1">
+                    <v-card v-for="order in orders" :key="order.id" class="mb-2 pa-3" elevation="0" :border="true">
                         <v-row>
                             <v-col cols="12" md="4">
                                 <v-card-subtitle>Sipariş no <b>{{ order.id }}</b></v-card-subtitle>

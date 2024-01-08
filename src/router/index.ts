@@ -53,6 +53,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'account',
     component: () => import(/* webpackChunkName: "about" */ '../views/AccountView.vue')
   },
+  {
+    path: '/add-product',
+    name: 'add-product',
+    component: () => import(/* webpackChunkName: "about" */ '../views/AddProductView.vue')
+  },
 ]
 
 const router = createRouter({

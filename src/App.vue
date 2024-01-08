@@ -6,6 +6,10 @@
 
         <v-spacer></v-spacer>
 
+        <v-btn v-if="isAdmin" :to="{ name: 'add-product' }">
+          ürün ekle
+        </v-btn>
+
         <v-btn prepend-icon="mdi-magnify">
           Ara
         </v-btn>
@@ -107,6 +111,7 @@ export default defineComponent({
     const snackbar = computed(() => store.state.snackbar);
     const userName = computed(() => store.state.user.activeUser ? (store.state.user.activeUser.firstName + ' ' + store.state.user.activeUser.lastName) : '');
 
+    const isAdmin = computed(() => store.state.user.activeUser ? store.state.user.activeUser.isAdmin : false);
     // Method to dispatch the 'showSnackbar' action
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const showSnackbar = (payload: any) => {
@@ -186,7 +191,8 @@ export default defineComponent({
       showSnackbar,
       hideSnackbar,
       nightMode,
-      icons
+      icons,
+      isAdmin
     };
   }
 });
